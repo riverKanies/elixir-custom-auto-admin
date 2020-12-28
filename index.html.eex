@@ -1,0 +1,39 @@
+<% header_style="border-right: 1px solid black;" %>
+<% cell_style="border: 1px solid black;" %>
+<% link_style="padding: 15px; margin: 15px; font-size: 30px; background: darkgray; color: white; text-decoration: none; border-radius: 5px" %>
+
+<% prev = "/autoadmin/index/#{@schema}?page=#{String.to_integer(@page_num) - 1}" %>
+<% next = "/autoadmin/index/#{@schema}?page=#{String.to_integer(@page_num) + 1}" %>
+
+<h1>Index: <%= "#{String.capitalize(@schema)}" %></h1>
+<table>
+  <tr>
+    <th style='<%= header_style %>'>Actions</th>
+    <%= for field <- @schema_module.__schema__(:fields) do %>
+      <th style='<%= header_style %>'><%= "#{String.capitalize(to_string(field))}" %></th>
+    <% end %>
+  </tr>
+  <%= for item <- @page do %>
+    <tr>
+      <td style='<%= cell_style %>'><a href='<%= "/autoadmin/edit/#{@schema}/#{item.id}" %>'>Edit</a></td>
+      <%= for field <- @schema_module.__schema__(:fields) do %>
+        <%= case @schema_module.__schema__(:type, field) do %>
+          <% {:embed, embedded} -> %>
+            <td style='<%= cell_style %>'>
+              <%= for efield <- embedded.related.__schema__(:fields) do %>
+                <% embedded_item = Map.get item, field %>
+                <%= if embedded_item == nil, do: "", else: "#{Map.get embedded_item, efield}, " %>
+              <% end %>
+            </td>
+          <% _ -> %>
+            <td style='<%= cell_style %>'><%= Map.get item, field %></td>
+        <% end %>
+      <% end %>
+    </tr>
+  <% end %>
+</table>
+<div style='padding-top: 50px; text-align: center; font-size: 16'>
+  <a href='<%= prev %>' style='<%= link_style %>'><</a>
+  Page: <%= @page_num %>
+  <a href='<%= next %>' style='<%= link_style %>'>></a>
+</div>

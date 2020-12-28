@@ -1,0 +1,55 @@
+<% link_style="padding: 15px; margin: 15px; font-size: 10px; background: darkgray; color: white; text-decoration: none; border-radius: 5px" %>
+<% submit_style="font-size:30px; color: white; background: blue; border: none; border-radius: 10px; padding:10px; margin-left: 100px;" %>
+
+<% action_path = Routes.auto_admin_path(@conn, :update, @schema, @id) %>
+<% selects = Map.get(@selects, String.to_atom(@schema), %{}) %>
+
+<h1>Edit <%= "#{String.capitalize(@schema)} : #{@id}" %></h1>
+
+<%= form_for @changeset, Routes.auto_admin_path(@conn, :update, @schema, @id), [as: :data], fn form -> %>
+
+  <h2>Fields</h2>
+  <%= for field <- @schema_module.__schema__(:fields) do %>
+    <%= case field do %>
+      <% :id -> %>
+      <% :inserted_at -> %>
+      <% :updated_at -> %>
+      <% _ -> %>
+        <label><%= "#{String.capitalize(to_string(field))}" %></label>
+        <%= render_field(form, @schema_module, field, selects) %>
+        <br/><br/>
+    <% end %>
+  <% end %>
+
+  <%= submit "Submit", style: submit_style %>
+<% end %>
+<br/><br/>
+<div style='width: 100%; border-bottom: 1px solid black'></div>
+<br/><br/>
+
+<h2>Associations</h2>
+<%= for association <- @schema_module.__schema__(:associations) do %>
+  <% schema = @schema_module.__schema__(:association, association) %>
+  <% related = Map.get schema, :related %>
+  <h3><%= "#{String.capitalize(to_string(association))}" %></h3>
+  <%= case related do %>
+    <% nil -> %>
+      <section>(Indirect Relation)</section>
+    <% _ -> %>
+      <%= for item <- Map.get(@changeset.data, association) do %>
+        <% schema_name = schema.related.__schema__(:source) %>
+        <% edit_link = "/autoadmin/edit/#{@prefix}#{schema_name}/#{item.id}" %>
+        <section><a href='<%= edit_link %>'>Edit</a> - <%= render_item(schema, item) %></section>
+      <% end %>
+      <br/>
+      <% page_num = Map.get @page_nums, association%>
+      <% prev = "/autoadmin/edit/#{@schema}/#{@id}?#{association}_page=#{String.to_integer(page_num) - 1}" %>
+      <% next = "/autoadmin/edit/#{@schema}/#{@id}?#{association}_page=#{String.to_integer(page_num) + 1}" %>
+      <div>
+        <a href='<%= prev %>' style='<%= link_style %>'><</a>
+        Page: <%= page_num %>
+        <a href='<%= next %>' style='<%= link_style %>'>></a>
+      </div>
+      <br/>
+  <% end %>
+<% end %>

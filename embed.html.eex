@@ -1,0 +1,10 @@
+<% selects = if @selects, do: @selects, else: %{} %>
+<div style='margin-left:20px'>
+  <%= inputs_for @form, @field, fn embed -> %>
+      <%= for field <- @schema_module.__schema__(:fields) do %>
+        <label><%= "#{String.capitalize(to_string(field))}" %></label>
+        <%= render_field(embed, @schema_module, field, selects) %>
+        <br/><br/>
+      <% end %>
+  <% end %>
+</div>
